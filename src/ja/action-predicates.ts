@@ -64,14 +64,21 @@ export const proceduralActionOffsets = (
   }
 
   const offsets: number[] = [];
+  let tokenIndex = 0;
   for (const [start, end] of clauseBoundaries(text)) {
-    const clauseTokens = tokens.filter((token) => {
-      const offset = token.word_position - 1;
-      return start <= offset && offset < end;
-    });
-    const verbs = clauseTokens.filter(isProceduralVerb);
-    if (verbs.length > 0) {
-      offsets.push(verbs[verbs.length - 1].word_position - 1);
+    while (tokenIndex < tokens.length && tokens[tokenIndex].word_position - 1 < start) {
+      tokenIndex += 1;
+    }
+
+    let lastProceduralVerb: Readonly<KuromojiToken> | undefined;
+    while (tokenIndex < tokens.length && tokens[tokenIndex].word_position - 1 < end) {
+      if (isProceduralVerb(tokens[tokenIndex])) {
+        lastProceduralVerb = tokens[tokenIndex];
+      }
+      tokenIndex += 1;
+    }
+    if (lastProceduralVerb !== undefined) {
+      offsets.push(lastProceduralVerb.word_position - 1);
     }
   }
   return offsets;

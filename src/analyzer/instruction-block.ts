@@ -146,17 +146,25 @@ const normalizeTokens = (tokens: readonly TextToken[]): {
 const sourceMapForSentence = (
   sentence: TxtSentenceNode,
   sourceMap: readonly InstructionTextMap[],
-  text: string
+  text: string,
+  firstPossibleEntry: number
 ): InstructionSentence | undefined => {
-  const sentenceEntries = sourceMap.filter(
-    ({ originalRange }) => originalRange[0] < sentence.range[1] && sentence.range[0] < originalRange[1]
-  );
-  if (sentenceEntries.length === 0) {
+  let firstEntry: InstructionTextMap | undefined;
+  let lastEntry: InstructionTextMap | undefined;
+  for (let index = firstPossibleEntry; index < sourceMap.length; index += 1) {
+    const entry = sourceMap[index];
+    if (entry.originalRange[0] >= sentence.range[1]) {
+      break;
+    }
+    if (sentence.range[0] < entry.originalRange[1]) {
+      firstEntry ??= entry;
+      lastEntry = entry;
+    }
+  }
+  if (firstEntry === undefined || lastEntry === undefined) {
     return undefined;
   }
 
-  const firstEntry = sentenceEntries[0];
-  const lastEntry = sentenceEntries[sentenceEntries.length - 1];
   const projectOriginalOffset = (
     entry: InstructionTextMap,
     originalOffset: number,
@@ -193,9 +201,25 @@ const normalizeParagraph = (paragraph: TxtParagraphNode): ParagraphResult => {
 
   const normalized = normalizeTokens(tokens);
   const sentenceNodes = splitAST(paragraph as unknown as Parameters<typeof splitAST>[0]).children.filter(isSentence);
-  const sentences = sentenceNodes
-    .map((sentence) => sourceMapForSentence(sentence, normalized.sourceMap, normalized.text))
-    .filter((sentence): sentence is InstructionSentence => sentence !== undefined);
+  const sentences: InstructionSentence[] = [];
+  let firstPossibleEntry = 0;
+  for (const sentence of sentenceNodes) {
+    while (
+      firstPossibleEntry < normalized.sourceMap.length &&
+      normalized.sourceMap[firstPossibleEntry].originalRange[1] <= sentence.range[0]
+    ) {
+      firstPossibleEntry += 1;
+    }
+    const normalizedSentence = sourceMapForSentence(
+      sentence,
+      normalized.sourceMap,
+      normalized.text,
+      firstPossibleEntry
+    );
+    if (normalizedSentence !== undefined) {
+      sentences.push(normalizedSentence);
+    }
+  }
 
   return {
     text: normalized.text,

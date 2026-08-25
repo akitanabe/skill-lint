@@ -88,12 +88,6 @@ const classifyOverloaded = (block: InstructionBlockSignals): readonly RiskCandid
       : []
   );
 
-const overlaps = (left: RiskCandidate, right: RiskCandidate): boolean =>
-  left.range[0] < right.range[1] && right.range[0] < left.range[1];
-
-const sharesChain = (left: RiskCandidate, right: RiskCandidate): boolean =>
-  left.chainIds.some((id) => right.chainIds.includes(id));
-
 const priority = (ruleId: RiskRuleId): number => [
   "nested-normative-instruction",
   "excessive-conditional-branches",
@@ -103,12 +97,24 @@ const priority = (ruleId: RiskRuleId): number => [
 export const classifyInstructionRisks = (
   blocks: readonly InstructionBlockSignals[]
 ): readonly RiskCandidate[] => {
-  const all = blocks.flatMap((block) => [
+  const candidatesByBlock = blocks.map((block) => [
     ...classifyNested(block),
     ...classifyConditional(block),
     ...classifyOverloaded(block)
   ]);
-  const parent = all.map((_, index) => index);
+  const winners: RiskCandidate[] = [];
+
+  for (const candidates of candidatesByBlock) {
+    winners.push(...selectBlockWinners(candidates));
+  }
+
+  return winners.sort((left, right) => left.range[0] - right.range[0]);
+};
+
+const selectBlockWinners = (
+  candidates: readonly RiskCandidate[]
+): readonly RiskCandidate[] => {
+  const parent = candidates.map((_, index) => index);
   const root = (index: number): number => {
     let current = index;
     while (parent[current] !== current) {
@@ -117,22 +123,49 @@ export const classifyInstructionRisks = (
     }
     return current;
   };
-  for (let left = 0; left < all.length; left += 1) {
-    for (let right = left + 1; right < all.length; right += 1) {
-      if (overlaps(all[left], all[right]) || sharesChain(all[left], all[right])) {
-        parent[root(right)] = root(left);
-      }
+  const unite = (left: number, right: number): void => {
+    parent[root(right)] = root(left);
+  };
+
+  const sourceOrdered = candidates
+    .map((_, index) => index)
+    .sort((left, right) => candidates[left].range[0] - candidates[right].range[0]);
+  let overlapRepresentative: number | undefined;
+  let overlapEnd = -1;
+  for (const index of sourceOrdered) {
+    if (
+      overlapRepresentative !== undefined &&
+      candidates[index].range[0] < overlapEnd
+    ) {
+      unite(overlapRepresentative, index);
+      overlapEnd = Math.max(overlapEnd, candidates[index].range[1]);
+    } else {
+      overlapRepresentative = index;
+      overlapEnd = candidates[index].range[1];
     }
   }
-  const winners = new Map<number, RiskCandidate>();
-  all.forEach((item, index) => {
-    const locus = root(index);
-    const current = winners.get(locus);
-    if (current === undefined || priority(item.ruleId) < priority(current.ruleId)) {
-      winners.set(locus, item);
+
+  const chainRepresentatives = new Map<string, number>();
+  candidates.forEach((item, index) => {
+    for (const chainId of item.chainIds) {
+      const representative = chainRepresentatives.get(chainId);
+      if (representative === undefined) {
+        chainRepresentatives.set(chainId, index);
+      } else {
+        unite(representative, index);
+      }
     }
   });
-  return [...winners.values()].sort((left, right) => left.range[0] - right.range[0]);
+
+  const winnerByLocus = new Map<number, RiskCandidate>();
+  candidates.forEach((item, index) => {
+    const locus = root(index);
+    const current = winnerByLocus.get(locus);
+    if (current === undefined || priority(item.ruleId) < priority(current.ruleId)) {
+      winnerByLocus.set(locus, item);
+    }
+  });
+  return [...winnerByLocus.values()];
 };
 
 export const runRiskAnalysis = async (
