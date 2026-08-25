@@ -29,7 +29,9 @@ describe("consumer and repository verification contract", () => {
       "historical-defense-instruction",
       "nested-normative-instruction",
       "excessive-conditional-branches",
-      "overloaded-instruction"
+      "overloaded-instruction",
+      "programmatic-flow-fields",
+      "programmatic-flow-no-discretion"
     ]) {
       expect(readme).toContain(ruleId);
     }
@@ -44,6 +46,17 @@ describe("consumer and repository verification contract", () => {
     expect(readme).toContain("検出結果を報告するだけ");
     expect(readme).toContain("tests/fixtures/corpus/");
     expect(readme).not.toContain("npm publish");
+  });
+
+  it("documents the opt-in Tugite Programmatic Flow contract", async () => {
+    const readme = await readRepositoryFile("README.md");
+
+    expect(readme).toContain('"programmatic-flow-fields": {}');
+    expect(readme).toContain('"programmatic-flow-no-discretion": {}');
+    expect(readme).toContain("既定では無効");
+    expect(readme).toContain("reference Markdown");
+    expect(readme).toContain("Gunte contract の代替ではありません");
+    expect(readme).toContain("自動修正しません");
   });
 
   it("runs the same verification entrypoint for every supported Node line", async () => {

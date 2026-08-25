@@ -46,9 +46,33 @@ Git tag または commit に固定して GitHub dependency として導入しま
 }
 ```
 
+### Tugite 用 Programmatic Flow ルール
+
+次の2ルールは既定では無効です。Tugite のように Programmatic Flow contract を採用する consumer が明示的に有効化します。
+
+| ルール名 | 検出対象 |
+| --- | --- |
+| `programmatic-flow-fields` | Flow ごとの `Trigger → Inputs → Procedure → Outcomes` の exactly-once と順序 |
+| `programmatic-flow-no-discretion` | `Procedure:` 自身へ裁量を与える強い局所表現 |
+
+```json
+{
+  "rules": {
+    "preset-skill-lint": {
+      "programmatic-flow-fields": {},
+      "programmatic-flow-no-discretion": {}
+    }
+  }
+}
+```
+
+exact `## Programmatic Flows` section の直下にある `### <flow-name>` を Flow として認識します。consumer が lint 対象 path を選ぶため、`SKILL.md` と Programmatic Flow を持つ reference Markdown のどちらも検査できます。repository path は rule に固定しません。
+
+検出は誤検出を抑える局所構文と明示表現に限定します。暗黙的または離れた裁量の意味推論は行わず、採用済み Flow の個別 semantics を保護する Gunte contract の代替ではありません。finding を報告するだけで自動修正しません。
+
 ## 対象と境界
 
-- ファイル名が `SKILL.md` の Markdown ファイルだけを解析します。
+- 共通4ルールは、ファイル名が `SKILL.md` の Markdown ファイルだけを解析します。Tugite 用2ルールの対象は上記の exact section で決まります。
 - 段落と箇条書きの項目をそれぞれ独立したまとまりとして扱い、別の見出し、段落、箇条書き項目の内容を結び付けません。
 - YAML の先頭メタデータ、見出し、コードブロック、インラインコード、HTML コメント、表は判定対象から除外します。
 - 過去を示す言葉や、禁止の指示が単独であるだけでは報告しません。現在の安全性、構文、役割、受け入れ／拒否の条件を直接示す禁止事項は有効です。

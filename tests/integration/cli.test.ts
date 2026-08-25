@@ -69,4 +69,30 @@ describe("textlint CLI contract", () => {
       await rm(fixtureDirectory, { recursive: true, force: true });
     }
   });
+
+  it("keeps Tugite rules disabled in the default preset and enables them explicitly", async () => {
+    const source = [
+      "## Programmatic Flows",
+      "",
+      "### invalid",
+      "",
+      "Trigger: x",
+      "Outcomes: z"
+    ].join("\n");
+    const defaultStatus = await cli.execute(cliArguments(
+      "--stdin",
+      "--stdin-filename", "references/execution.md",
+      "--config", "tests/fixtures/cli-default.textlintrc.json",
+      "--format", "json"
+    ), source);
+    const tugiteStatus = await cli.execute(cliArguments(
+      "--stdin",
+      "--stdin-filename", "references/execution.md",
+      "--config", "tests/fixtures/cli-tugite.textlintrc.json",
+      "--format", "json"
+    ), source);
+
+    expect(defaultStatus).toBe(0);
+    expect(tugiteStatus).toBe(1);
+  });
 });

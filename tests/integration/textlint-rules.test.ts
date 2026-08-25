@@ -144,4 +144,48 @@ describe("textlint risk rule integration", () => {
     expect(result.output).toBe(source);
     expect(result.applyingMessages).toEqual([]);
   });
+
+  it.each(["/repo/SKILL.md", "/repo/references/execution.md"])(
+    "checks Programmatic Flows in %s when the Tugite rules are enabled",
+    async (filePath) => {
+      const source = [
+        "## Programmatic Flows",
+        "",
+        "### invalid",
+        "",
+        "Trigger: x",
+        "Procedure: 必要に応じて方法を選ぶ。",
+        "Outcomes: z"
+      ].join("\n");
+
+      expect((await lint(source, filePath, configuredRules([
+        "programmatic-flow-fields",
+        "programmatic-flow-no-discretion"
+      ]))).messages.map(({ ruleId }) => ruleId)).toEqual([
+        "programmatic-flow-fields",
+        "programmatic-flow-no-discretion"
+      ]);
+    }
+  );
+
+  it("does not alter a malformed Programmatic Flow during a fix run", async () => {
+    const source = [
+      "## Programmatic Flows",
+      "",
+      "### invalid",
+      "",
+      "Trigger: x",
+      "Procedure: 必要に応じて方法を選ぶ。",
+      "Outcomes: z"
+    ].join("\n");
+    const result = await kernel.fixText(source, {
+      ext: ".md",
+      filePath: "/repo/references/execution.md",
+      plugins: [{ pluginId: "markdown", plugin: markdownPlugin }],
+      rules: configuredRules(["programmatic-flow-fields", "programmatic-flow-no-discretion"])
+    });
+
+    expect(result.output).toBe(source);
+    expect(result.applyingMessages).toEqual([]);
+  });
 });

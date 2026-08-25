@@ -54,7 +54,7 @@ describe("Skill Lint textlint preset package", () => {
     expect(engine.split(" || ")).not.toContain(`${major}.x`);
   });
 
-  it("exports four independently configurable rule creators", async () => {
+  it("exports common and opt-in Tugite rule creators", async () => {
     const entry = (await import(pathToFileURL(resolve(packageRoot, "dist/index.js")).href)) as {
       default: {
         rules: Record<string, unknown>;
@@ -67,19 +67,23 @@ describe("Skill Lint textlint preset package", () => {
       "historical-defense-instruction",
       "nested-normative-instruction",
       "excessive-conditional-branches",
-      "overloaded-instruction"
+      "overloaded-instruction",
+      "programmatic-flow-fields",
+      "programmatic-flow-no-discretion"
     ]);
     expect(Object.values(rules).every((creator) => typeof creator === "function")).toBe(true);
-    expect(new Set(Object.values(rules)).size).toBe(4);
+    expect(new Set(Object.values(rules)).size).toBe(6);
     expect(rulesConfig).toEqual({
       "historical-defense-instruction": true,
       "nested-normative-instruction": true,
       "excessive-conditional-branches": true,
-      "overloaded-instruction": true
+      "overloaded-instruction": true,
+      "programmatic-flow-fields": false,
+      "programmatic-flow-no-discretion": false
     });
   });
 
-  it("applies the SKILL.md basename gate to every rule visitor", async () => {
+  it("keeps common rules on SKILL.md and allows Tugite rules on reference Markdown", async () => {
     const entry = (await import(pathToFileURL(resolve(packageRoot, "dist/index.js")).href)) as {
       default: { rules: Record<string, (context: unknown) => Record<string, unknown>> };
     };
@@ -91,8 +95,19 @@ describe("Skill Lint textlint preset package", () => {
       locator: { range: () => ({}) }
     });
 
-    for (const creator of Object.values(entry.default.rules)) {
+    for (const ruleId of [
+      "historical-defense-instruction",
+      "nested-normative-instruction",
+      "excessive-conditional-branches",
+      "overloaded-instruction"
+    ]) {
+      const creator = entry.default.rules[ruleId];
       expect(Object.keys(creator(contexts("/repo/README.md")))).toEqual([]);
+      expect(Object.keys(creator(contexts("/repo/SKILL.md")))).toEqual(["Document"]);
+    }
+    for (const ruleId of ["programmatic-flow-fields", "programmatic-flow-no-discretion"]) {
+      const creator = entry.default.rules[ruleId];
+      expect(Object.keys(creator(contexts("/repo/README.md")))).toEqual(["Document"]);
       expect(Object.keys(creator(contexts("/repo/SKILL.md")))).toEqual(["Document"]);
     }
   });

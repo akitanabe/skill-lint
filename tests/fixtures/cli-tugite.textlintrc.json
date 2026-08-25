@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "preset-skill-lint": {
+      "programmatic-flow-fields": {},
+      "programmatic-flow-no-discretion": {}
+    }
+  }
+}
