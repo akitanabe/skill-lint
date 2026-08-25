@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@textlint/ast-node-types": "15.8.0",
+    "@textlint/markdown-to-ast": "15.8.0",
     "@textlint/types": "15.8.0",
     "@types/node": "22.15.21",
     "textlint": "15.8.0",
