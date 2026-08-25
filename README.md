@@ -1,6 +1,6 @@
 # skill-lint
 
-`textlint-rule-preset-skill-lint` は、Agent Skill の instruction に特有の局所的な静的リスクを検出する textlint preset です。一般的な日本語校正や文書全体の意味推論は行いません。
+`textlint-rule-preset-skill-lint` は、Agent Skill の指示文に含まれる、機械的に判定できるリスクを検出する textlint 用プリセットです。一般的な日本語校正や文書全体の意味推論は行いません。
 
 ## 導入
 
@@ -25,16 +25,16 @@ Git tag または commit に固定して GitHub dependency として導入しま
 }
 ```
 
-## Rules
+## 検出ルール
 
-| Rule | 検出対象 |
+| ルール名 | 検出対象 |
 | --- | --- |
-| `historical-defense-instruction` | 過去・削除・旧名の状態に明示的に依存する恒久的な防御 instruction |
-| `nested-normative-instruction` | 条件スコープ内に入れ子になった規範的・手続的判断 |
-| `excessive-conditional-branches` | 同じ instruction block に集中した独立 condition / exception / fallback |
-| `overloaded-instruction` | 1文に詰め込まれた独立 Action predicate |
+| `historical-defense-instruction` | 過去・削除・旧名の状態を理由に、現在も残り続ける禁止指示 |
+| `nested-normative-instruction` | 条件の中に、さらに別の条件や手順の判断が入っている指示 |
+| `excessive-conditional-branches` | 1つの指示のまとまりに、独立した条件・例外・代替処理が集中している状態 |
+| `overloaded-instruction` | 1文に、独立した操作が多く詰め込まれた指示 |
 
-同じ problem locus が複数条件を満たす場合は、表の上から優先して1件だけ報告します。上位 rule を無効にしても下位 taxonomy へ格下げしない `no-fallback` 契約です。rule は preset 設定で個別に無効化できます。
+同じ文章範囲（同じ文や、関連する隣接文）に複数のルールが当てはまる場合は、一覧の上から優先して1件だけ報告します。上位のルールを無効にしても、同じ箇所を下位のルールとして改めて報告することはありません。各ルールは設定で個別に無効化できます。
 
 ```json
 {
@@ -48,20 +48,20 @@ Git tag または commit に固定して GitHub dependency として導入しま
 
 ## 対象と境界
 
-- basename が `SKILL.md` の Markdown だけを解析します。
-- Paragraph と ListItem を局所 block として扱い、別 heading、別 Paragraph、別 ListItem を結合しません。
-- YAML frontmatter、heading、fenced code、inline code、HTML comment、table は診断根拠から除外します。
-- historical word や negative instruction が単独であるだけでは報告しません。現在の safety、syntax、responsibility、accepted / rejected boundary を直接表す negative constraint は有効です。
-- fixer、public threshold option、独自 CLI、一般日本語校正、LLM による文書全体推論は提供しない `report-only` preset です。
+- ファイル名が `SKILL.md` の Markdown ファイルだけを解析します。
+- 段落と箇条書きの項目をそれぞれ独立したまとまりとして扱い、別の見出し、段落、箇条書き項目の内容を結び付けません。
+- YAML の先頭メタデータ、見出し、コードブロック、インラインコード、HTML コメント、表は判定対象から除外します。
+- 過去を示す言葉や、禁止の指示が単独であるだけでは報告しません。現在の安全性、構文、役割、受け入れ／拒否の条件を直接示す禁止事項は有効です。
+- 自動修正、利用者向けのしきい値設定、独自コマンド、一般的な日本語校正、LLM による文書全体の意味推論は提供しません。検出結果を報告するだけのプリセットです。
 
-textlint の既定 `severity` は error のため、violation は通常 exit 1 になります。consumer が host 標準設定で warning / info に変更した場合の exit policy は textlint host の責務です。`--fix` を実行しても入力は変更しません。
+textlint の既定の重要度は `error` のため、違反があると通常は終了コード 1 になります。利用側が textlint の標準設定で `warning` / `info` に変更した場合の終了コードの扱いは、textlint 側の責務です。`--fix` を実行しても入力は変更しません。
 
 ## 互換範囲
 
 - Node.js: `20.x || 22.x || 24.x`
 - textlint: `15.8.x`
 
-この範囲外と、依存 major や Markdown AST shape の変更は互換性保証の対象外です。npm registry への公開は対象外です。
+この範囲外と、依存パッケージのメジャーバージョンや Markdown の解析結果の構造が変わった場合は、互換性保証の対象外です。npm registry への公開は対象外です。
 
 ## 開発時の検証
 
@@ -70,10 +70,10 @@ npm ci
 npm run verify
 ```
 
-`verify` は strict typecheck、unit / integration / corpus tests、build、package contents check を実行します。CI も Node 20 / 22 / 24 で同じ lockfile と entrypoint を使います。
+`verify` は厳格な型チェック、単体・結合・固定文書テスト、ビルド、パッケージ内容の確認を実行します。CI も Node 20 / 22 / 24 で、依存関係を固定した同じ環境と検証コマンドを使います。
 
-## corpus の更新
+## 固定テスト文書の更新
 
-固定 corpus は `tests/fixtures/corpus/` にあり、test runtime は外部 repository や plugin cache を参照しません。更新時は source revision または version を決め、snapshot と SHA-256 を差し替え、actual finding を source context と rule 定義に照らして裁定します。false positive を期待値へ無条件追加せず、必要なら synthetic regression fixture と最小の heuristic narrowing を先に行います。
+固定したテスト文書は `tests/fixtures/corpus/` にあり、テスト実行時に外部リポジトリやプラグインのキャッシュを参照しません。更新時は元文書のリビジョンまたはバージョンを決め、スナップショットと SHA-256 を差し替え、実際の検出結果を元文書の前後関係とルール定義に照らして判断します。誤検出を期待値へ無条件に追加せず、必要なら再発防止用の小さなテスト文書を追加し、判定条件を最小限に絞り込みます。
 
-deterministic heuristic は precision-first であり、暗黙の instruction、長距離 dependency、未収録表現の false negative は残り得ます。
+判定は決まった規則に基づき、見逃しを減らすことより誤検出を減らすことを優先します。そのため、暗黙の指示、離れた文どうしの関係、まだテスト文書に含まれていない表現は検出できない場合があります。
