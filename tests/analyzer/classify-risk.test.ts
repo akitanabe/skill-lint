@@ -24,7 +24,13 @@ const sentenceSignal = (
   branchActionChainIds: chains?.branches ?? Array.from({ length: actions }, (_, index) => `${id}:branch-action:${index}`),
   conditionCount: conditions,
   hasExceptionContinuation: exception,
-  hasFallback: false
+  hasFallback: false,
+  historicalDefense: {
+    historicalMarkerRanges: [],
+    defensiveActionRanges: [],
+    hasLocalRelation: false,
+    hasCausalContinuation: false
+  }
 });
 
 const blockSignals = (id: string, sentences: readonly SentenceSignal[]): InstructionBlockSignals => ({
@@ -40,6 +46,23 @@ const blockSignals = (id: string, sentences: readonly SentenceSignal[]): Instruc
 });
 
 describe("risk candidate selection", () => {
+  it("selects the historical defense winner for an overlapping locus", () => {
+    const overloaded = sentenceSignal("sentence:0", [0, 20], 4);
+    const block = blockSignals("block:0", [{
+      ...overloaded,
+      historicalDefense: {
+        ...overloaded.historicalDefense,
+        historicalMarkerRanges: [[0, 2]],
+        defensiveActionRanges: [[10, 15]],
+        hasLocalRelation: true
+      }
+    }]);
+
+    expect(classifyInstructionRisks([block]).map(({ ruleId }) => ruleId)).toEqual([
+      "historical-defense-instruction"
+    ]);
+  });
+
   it("selects the nested winner for overlapping candidates", () => {
     const block = blockSignals("block:0", [
       sentenceSignal("sentence:0", [0, 5], 1),

@@ -10,9 +10,44 @@ const THRESHOLDS = {
 } as const;
 
 const MESSAGES: Readonly<Record<RiskRuleId, string>> = {
+  "historical-defense-instruction": "過去の状態を根拠とする恒久的な防御規則になっています。現在の invariant、responsibility、boundary として記述してください。",
   "nested-normative-instruction": "条件のスコープ内に規範的な判断が入れ子になっています。",
   "excessive-conditional-branches": "同じ指示ブロックに結果を選ぶ条件分岐が集中しています。",
   "overloaded-instruction": "1文に独立したアクションが詰め込まれています。"
+};
+
+const classifyHistoricalDefense = (block: InstructionBlockSignals): readonly RiskCandidate[] => {
+  const candidates: RiskCandidate[] = [];
+  block.sentences.forEach((sentence, index) => {
+    if (sentence.historicalDefense.hasLocalRelation) {
+      candidates.push(candidate(
+        "historical-defense-instruction",
+        block,
+        index,
+        sentence.sentence.originalRange,
+        [`${sentence.id}:historical-defense`]
+      ));
+      return;
+    }
+
+    if (
+      index > 0 &&
+      sentence.historicalDefense.hasCausalContinuation &&
+      sentence.historicalDefense.defensiveActionRanges.length > 0
+    ) {
+      const previous = block.sentences[index - 1];
+      if (previous.historicalDefense.historicalMarkerRanges.length > 0) {
+        candidates.push(candidate(
+          "historical-defense-instruction",
+          block,
+          index,
+          [previous.sentence.originalRange[0], sentence.sentence.originalRange[1]],
+          [`${previous.id}:historical-marker`, `${sentence.id}:defensive-action`]
+        ));
+      }
+    }
+  });
+  return candidates;
 };
 
 const candidate = (
@@ -89,6 +124,7 @@ const classifyOverloaded = (block: InstructionBlockSignals): readonly RiskCandid
   );
 
 const priority = (ruleId: RiskRuleId): number => [
+  "historical-defense-instruction",
   "nested-normative-instruction",
   "excessive-conditional-branches",
   "overloaded-instruction"
@@ -98,6 +134,7 @@ export const classifyInstructionRisks = (
   blocks: readonly InstructionBlockSignals[]
 ): readonly RiskCandidate[] => {
   const candidatesByBlock = blocks.map((block) => [
+    ...classifyHistoricalDefense(block),
     ...classifyNested(block),
     ...classifyConditional(block),
     ...classifyOverloaded(block)

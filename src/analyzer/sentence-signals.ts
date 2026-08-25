@@ -4,6 +4,7 @@ import {
   explicitActionClauseOffsets,
   proceduralActionOffsets
 } from "../ja/action-predicates.js";
+import { historicalDefenseSignal } from "../ja/historical-defense.js";
 import { CONDITION_PATTERNS, EXCEPTION_MARKERS, FALLBACK_MARKERS } from "../ja/lexicon.js";
 import type { InstructionBlock, InstructionBlockSignals, SentenceSignal } from "./types.js";
 
@@ -35,7 +36,8 @@ const loadSentenceSignal = async (
     branchActionChainIds: branchActionOffsets.map((_, actionIndex) => `${id}:branch-action:${actionIndex}`),
     conditionCount: conditionCount(sentence.text),
     hasExceptionContinuation: EXCEPTION_MARKERS.some((marker) => sentence.text.startsWith(marker)),
-    hasFallback: FALLBACK_MARKERS.some((marker) => sentence.text.includes(marker))
+    hasFallback: FALLBACK_MARKERS.some((marker) => sentence.text.includes(marker)),
+    historicalDefense: historicalDefenseSignal(sentence.text)
   };
 };
 

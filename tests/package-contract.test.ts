@@ -54,7 +54,7 @@ describe("Skill Lint textlint preset package", () => {
     expect(engine.split(" || ")).not.toContain(`${major}.x`);
   });
 
-  it("exports three independently configurable rule creators", async () => {
+  it("exports four independently configurable rule creators", async () => {
     const entry = (await import(pathToFileURL(resolve(packageRoot, "dist/index.js")).href)) as {
       default: {
         rules: Record<string, unknown>;
@@ -64,13 +64,15 @@ describe("Skill Lint textlint preset package", () => {
     const { rules, rulesConfig } = entry.default;
 
     expect(Object.keys(rules)).toEqual([
+      "historical-defense-instruction",
       "nested-normative-instruction",
       "excessive-conditional-branches",
       "overloaded-instruction"
     ]);
     expect(Object.values(rules).every((creator) => typeof creator === "function")).toBe(true);
-    expect(new Set(Object.values(rules)).size).toBe(3);
+    expect(new Set(Object.values(rules)).size).toBe(4);
     expect(rulesConfig).toEqual({
+      "historical-defense-instruction": true,
       "nested-normative-instruction": true,
       "excessive-conditional-branches": true,
       "overloaded-instruction": true

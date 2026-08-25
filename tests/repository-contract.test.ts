@@ -26,6 +26,7 @@ describe("consumer and repository verification contract", () => {
     expect(readme).toContain(packageJson.engines.node);
     expect(readme).toContain(packageJson.peerDependencies.textlint);
     for (const ruleId of [
+      "historical-defense-instruction",
       "nested-normative-instruction",
       "excessive-conditional-branches",
       "overloaded-instruction"
