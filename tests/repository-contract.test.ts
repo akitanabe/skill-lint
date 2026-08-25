@@ -39,10 +39,10 @@ describe("consumer and repository verification contract", () => {
     const readme = await readRepositoryFile("README.md");
 
     expect(readme).toContain("SKILL.md");
-    expect(readme).toContain("no-fallback");
-    expect(readme).toContain("severity");
-    expect(readme).toContain("report-only");
-    expect(readme).toContain("corpus");
+    expect(readme).toContain("上位のルールを無効にしても");
+    expect(readme).toContain("既定の重要度");
+    expect(readme).toContain("検出結果を報告するだけ");
+    expect(readme).toContain("tests/fixtures/corpus/");
     expect(readme).not.toContain("npm publish");
   });
 
