@@ -9,7 +9,7 @@ const readRepositoryFile = (path: string): Promise<string> =>
   readFile(resolve(repositoryRoot, path), "utf8");
 
 describe("consumer and repository verification contract", () => {
-  it("documents installation and textlint configuration for the published preset", async () => {
+  it("documents GitHub dependency installation and textlint configuration", async () => {
     const [readme, packageJsonText] = await Promise.all([
       readRepositoryFile("README.md"),
       readRepositoryFile("package.json")

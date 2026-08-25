@@ -54,7 +54,7 @@ describe("Skill Lint textlint preset package", () => {
     expect(engine.split(" || ")).not.toContain(`${major}.x`);
   });
 
-  it("publishes three independently configurable rule creators", async () => {
+  it("exports three independently configurable rule creators", async () => {
     const entry = (await import(pathToFileURL(resolve(packageRoot, "dist/index.js")).href)) as {
       default: {
         rules: Record<string, unknown>;
