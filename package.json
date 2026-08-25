@@ -1,0 +1,42 @@
+{
+  "name": "textlint-rule-preset-skill-lint",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": "20.x || 22.x || 24.x"
+  },
+  "peerDependencies": {
+    "textlint": "15.8.x"
+  },
+  "dependencies": {
+    "kuromojin": "3.0.1",
+    "sentence-splitter": "5.0.1"
+  },
+  "devDependencies": {
+    "@textlint/ast-node-types": "15.8.0",
+    "@textlint/types": "15.8.0",
+    "@types/node": "22.15.21",
+    "textlint": "15.8.0",
+    "typescript": "5.8.3",
+    "vitest": "3.2.7"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build",
+    "test": "npm run build && vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}

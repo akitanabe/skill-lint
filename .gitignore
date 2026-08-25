@@ -1,1 +1,6 @@
 .local/
+node_modules/
+dist/
+coverage/
+.npm-cache/
+*.tgz
