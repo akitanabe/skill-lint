@@ -25,6 +25,11 @@ const lint = (source: string, filePath = "/repo/SKILL.md", rules = configuredRul
 describe("textlint risk rule integration", () => {
   it.each([
     [
+      "旧版の X を使用してはいけない。",
+      "historical-defense-instruction",
+      "過去の状態を根拠とする恒久的な防御規則になっています。現在の invariant、responsibility、boundary として記述してください。"
+    ],
+    [
       "確認し、比較して、必要なら修正し、結果を報告する。",
       "overloaded-instruction",
       "1文に独立したアクションが詰め込まれています。"
@@ -66,6 +71,7 @@ describe("textlint risk rule integration", () => {
 
   it("allows each rule to be disabled independently", async () => {
     const cases = [
+      ["旧版の X を使用してはいけない。", "historical-defense-instruction"],
       ["確認し、比較して、修正し、報告する。", "overloaded-instruction"],
       ["A の場合は B する。ただし C の場合は D し、それでも成立しない場合は E する。", "excessive-conditional-branches"],
       ["A する。ただし B の場合は C し、D なら E する。", "nested-normative-instruction"]
@@ -80,6 +86,19 @@ describe("textlint risk rule integration", () => {
     const source = "A する。ただし B の場合は C し、D なら E し、F を確認して、G を比較して、H を修正し、I を報告する。";
     const lowerRules = configuredRules(["excessive-conditional-branches", "overloaded-instruction"]);
     expect((await lint(source, "/repo/SKILL.md", lowerRules)).messages).toEqual([]);
+  });
+
+  it("does not fall back from a historical defense winner to a lower-priority rule", async () => {
+    const source = "旧版の X を使用してはいけないため、A を確認し、B を比較し、C を修正し、D を報告する。";
+
+    expect((await lint(source)).messages.map(({ ruleId }) => ruleId)).toEqual([
+      "historical-defense-instruction"
+    ]);
+    expect((await lint(
+      source,
+      "/repo/SKILL.md",
+      configuredRules(["overloaded-instruction"])
+    )).messages).toEqual([]);
   });
 
   it("does not fall back from a conditional winner to an overloaded rule", async () => {

@@ -26,9 +26,17 @@ export type InstructionBlock = {
 };
 
 export type RiskRuleId =
+  | "historical-defense-instruction"
   | "nested-normative-instruction"
   | "excessive-conditional-branches"
   | "overloaded-instruction";
+
+export type HistoricalDefenseSignal = {
+  readonly historicalMarkerRanges: readonly InstructionSourceRange[];
+  readonly defensiveActionRanges: readonly InstructionSourceRange[];
+  readonly hasLocalRelation: boolean;
+  readonly hasCausalContinuation: boolean;
+};
 
 export type SentenceSignal = {
   readonly id: string;
@@ -38,6 +46,7 @@ export type SentenceSignal = {
   readonly conditionCount: number;
   readonly hasExceptionContinuation: boolean;
   readonly hasFallback: boolean;
+  readonly historicalDefense: HistoricalDefenseSignal;
 };
 
 export type InstructionBlockSignals = {
