@@ -1,0 +1,11 @@
+{
+  "rules": {
+    "preset-skill-lint": {
+      "nested-normative-instruction": false,
+      "excessive-conditional-branches": false,
+      "overloaded-instruction": {
+        "severity": "warning"
+      }
+    }
+  }
+}

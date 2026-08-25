@@ -35,6 +35,8 @@ describe("Skill Lint textlint preset package", () => {
     ]);
     expect((packageJson.dependencies as Record<string, string>).kuromojin).toMatch(/^3\./);
     expect((packageJson.dependencies as Record<string, string>)["sentence-splitter"]).toMatch(/^5\./);
+    expect((packageJson.devDependencies as Record<string, string>)["@textlint/kernel"]).toBe("15.8.0");
+    expect((packageJson.devDependencies as Record<string, string>)["@textlint/textlint-plugin-markdown"]).toBe("15.8.0");
     expect((packageJson.scripts as Record<string, string>).prepare).toBe("npm run build");
   });
 
@@ -80,15 +82,16 @@ describe("Skill Lint textlint preset package", () => {
       default: { rules: Record<string, (context: unknown) => Record<string, unknown>> };
     };
     const contexts = (filePath: string) => ({
-      Syntax: { Str: "Str" },
+      Syntax: { Document: "Document" },
       getFilePath: () => filePath,
       report: () => undefined,
-      RuleError: class RuleError extends Error {}
+      RuleError: class RuleError extends Error {},
+      locator: { range: () => ({}) }
     });
 
     for (const creator of Object.values(entry.default.rules)) {
       expect(Object.keys(creator(contexts("/repo/README.md")))).toEqual([]);
-      expect(Object.keys(creator(contexts("/repo/SKILL.md")))).toEqual(["Str"]);
+      expect(Object.keys(creator(contexts("/repo/SKILL.md")))).toEqual(["Document"]);
     }
   });
 

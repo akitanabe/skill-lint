@@ -24,3 +24,33 @@ export type InstructionBlock = {
   readonly sourceMap: readonly InstructionTextMap[];
   readonly sentences: readonly InstructionSentence[];
 };
+
+export type RiskRuleId =
+  | "nested-normative-instruction"
+  | "excessive-conditional-branches"
+  | "overloaded-instruction";
+
+export type SentenceSignal = {
+  readonly id: string;
+  readonly sentence: InstructionSentence;
+  readonly actionChainIds: readonly string[];
+  readonly branchActionChainIds: readonly string[];
+  readonly conditionCount: number;
+  readonly hasExceptionContinuation: boolean;
+  readonly hasFallback: boolean;
+};
+
+export type InstructionBlockSignals = {
+  readonly id: string;
+  readonly block: InstructionBlock;
+  readonly sentences: readonly SentenceSignal[];
+};
+
+export type RiskCandidate = {
+  readonly id: string;
+  readonly ruleId: RiskRuleId;
+  readonly message: string;
+  readonly range: InstructionSourceRange;
+  readonly blockId: string;
+  readonly chainIds: readonly string[];
+};
