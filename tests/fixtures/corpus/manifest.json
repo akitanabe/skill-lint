@@ -1,0 +1,61 @@
+{
+  "retrievedAt": "2026-08-25",
+  "entries": [
+    {
+      "id": "clarify-it",
+      "source": {
+        "repository": "https://github.com/akitanabe/clarify-it",
+        "path": "src/SKILL.md",
+        "revision": "336e5b9d59cf876d43314f50b6a4ee166a9845ed"
+      },
+      "snapshot": "clarify-it/SKILL.md",
+      "sha256": "96b51d128cf3e63e0b3c8d2c89b3fb0f8a914c05118f9220f0d102f23010e2a3",
+      "expectedFindings": [
+        {
+          "ruleId": "excessive-conditional-branches",
+          "message": "同じ指示ブロックに結果を選ぶ条件分岐が集中しています。",
+          "range": [4588, 4882]
+        }
+      ]
+    },
+    {
+      "id": "tugite-plan-agent",
+      "source": {
+        "repository": "https://github.com/akitanabe/tugite",
+        "path": "plugins/codex/skills/plan-agent/SKILL.md",
+        "version": "6.1.4"
+      },
+      "snapshot": "tugite-plan-agent/SKILL.md",
+      "sha256": "3b2d354ebacbd07c55a9bff93871fd3acc5a43c6954793fd207ba8064805529f",
+      "expectedFindings": []
+    },
+    {
+      "id": "tugite-impl-lead",
+      "source": {
+        "repository": "https://github.com/akitanabe/tugite",
+        "path": "plugins/codex/skills/impl-lead/SKILL.md",
+        "version": "6.1.4"
+      },
+      "snapshot": "tugite-impl-lead/SKILL.md",
+      "sha256": "9fd06090b5709dde4e6078cffa8d0c6b5fe905a7dadec711640e4318c78aa3cf",
+      "expectedFindings": []
+    },
+    {
+      "id": "tugite-review-refine",
+      "source": {
+        "repository": "https://github.com/akitanabe/tugite",
+        "path": "plugins/codex/skills/review-refine/SKILL.md",
+        "version": "6.1.4"
+      },
+      "snapshot": "tugite-review-refine/SKILL.md",
+      "sha256": "4b27065ac7e70c72e81a0c1b327234be6617dd2eb8da2e32693561c1af83de1e",
+      "expectedFindings": [
+        {
+          "ruleId": "overloaded-instruction",
+          "message": "1文に独立したアクションが詰め込まれています。",
+          "range": [11152, 11445]
+        }
+      ]
+    }
+  ]
+}
